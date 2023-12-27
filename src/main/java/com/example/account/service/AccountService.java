@@ -6,20 +6,22 @@ import com.example.account.dto.AccountDto;
 import com.example.account.exception.AccountException;
 import com.example.account.repository.AccountRepository;
 import com.example.account.repository.AccountUserRepository;
-import com.example.account.type.AccountStatus;
+import com.example.account.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import com.example.account.type.ErrorCode;
-
-import javax.transaction.Transactional;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
-import static com.example.account.type.AccountStatus.*;
+import static com.example.account.type.AccountStatus.IN_USE;
+import static com.example.account.type.AccountStatus.UNREGISTERED;
 
 @Service
 @RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class AccountService {
     private final AccountRepository accountRepository;
     private final AccountUserRepository accountUserRepository;
@@ -83,5 +85,13 @@ public class AccountService {
         if (account.getBalance() > 0) {
             throw new AccountException(ErrorCode.BALANCE_NOT_EMPTY);
         }
+    }
+
+    public List<AccountDto> getAccountsByUserId(Long userId) {
+        AccountUser accountUser = accountUserRepository.findById(userId)
+                .orElseThrow(() -> new AccountException(ErrorCode.USER_NOT_FOUND));
+        return accountRepository.findByAccountUser(accountUser)
+                .stream().map(AccountDto::fromEntity)
+                .collect(Collectors.toList());
     }
 }
