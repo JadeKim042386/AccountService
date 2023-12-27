@@ -1,7 +1,7 @@
 package com.example.account.exception;
 
-import lombok.*;
 import com.example.account.type.ErrorCode;
+import lombok.*;
 
 @Getter
 @Setter

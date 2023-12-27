@@ -20,8 +20,10 @@ import java.time.LocalDateTime;
 import java.util.Objects;
 import java.util.UUID;
 
-import static com.example.account.type.TransactionResultType.*;
-import static com.example.account.type.TransactionType.*;
+import static com.example.account.type.TransactionResultType.F;
+import static com.example.account.type.TransactionResultType.S;
+import static com.example.account.type.TransactionType.CANCEL;
+import static com.example.account.type.TransactionType.USE;
 
 @Service
 @RequiredArgsConstructor
