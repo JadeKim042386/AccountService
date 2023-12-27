@@ -24,6 +24,8 @@ import java.time.LocalDateTime;
 import java.util.Optional;
 
 import static com.example.account.type.AccountStatus.UNREGISTERED;
+import static com.example.account.type.TransactionResultType.S;
+import static com.example.account.type.TransactionType.USE;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.*;
@@ -54,8 +56,8 @@ class TransactionServiceTest {
                 .willReturn(Optional.of(account));
         given(transactionRepository.save(any())).willReturn(Transaction.builder()
                         .account(account)
-                        .transactionType(TransactionType.USE)
-                        .transactionResultType(TransactionResultType.S)
+                        .transactionType(USE)
+                        .transactionResultType(S)
                         .transactionId("transactionId")
                         .transactedAt(LocalDateTime.now())
                         .amount(1000L)
@@ -69,8 +71,8 @@ class TransactionServiceTest {
         verify(transactionRepository, times(1)).save(captor.capture());
         assertThat(captor.getValue().getAmount()).isEqualTo(200L);
         assertThat(captor.getValue().getBalanceSnapshot()).isEqualTo(9800L);
-        assertThat(transactionDto.getTransactionResultType()).isEqualTo(TransactionResultType.S);
-        assertThat(transactionDto.getTransactionType()).isEqualTo(TransactionType.USE);
+        assertThat(transactionDto.getTransactionResultType()).isEqualTo(S);
+        assertThat(transactionDto.getTransactionType()).isEqualTo(USE);
         assertThat(transactionDto.getBalanceSnapshot()).isEqualTo(9000L);
         assertThat(transactionDto.getAmount()).isEqualTo(1000L);
     }
@@ -168,7 +170,7 @@ class TransactionServiceTest {
                 .willReturn(Optional.of(account));
         given(transactionRepository.save(any())).willReturn(Transaction.builder()
                 .account(account)
-                .transactionType(TransactionType.USE)
+                .transactionType(USE)
                 .transactionResultType(TransactionResultType.F)
                 .transactionId("transactionId")
                 .transactedAt(LocalDateTime.now())
@@ -198,8 +200,8 @@ class TransactionServiceTest {
                 .build();
         Transaction transaction = Transaction.builder()
                 .account(account)
-                .transactionType(TransactionType.USE)
-                .transactionResultType(TransactionResultType.S)
+                .transactionType(USE)
+                .transactionResultType(S)
                 .transactionId("transactionId")
                 .transactedAt(LocalDateTime.now())
                 .amount(200L)
@@ -212,7 +214,7 @@ class TransactionServiceTest {
         given(transactionRepository.save(any())).willReturn(Transaction.builder()
                 .account(account)
                 .transactionType(TransactionType.CANCEL)
-                .transactionResultType(TransactionResultType.S)
+                .transactionResultType(S)
                 .transactionId("transactionIdForCancel")
                 .transactedAt(LocalDateTime.now())
                 .amount(200L)
@@ -230,7 +232,7 @@ class TransactionServiceTest {
         verify(transactionRepository, times(1)).save(captor.capture());
         assertThat(captor.getValue().getAmount()).isEqualTo(200L);
         assertThat(captor.getValue().getBalanceSnapshot()).isEqualTo(10000L + 200L);
-        assertThat(transactionDto.getTransactionResultType()).isEqualTo(TransactionResultType.S);
+        assertThat(transactionDto.getTransactionResultType()).isEqualTo(S);
         assertThat(transactionDto.getTransactionType()).isEqualTo(TransactionType.CANCEL);
         assertThat(transactionDto.getBalanceSnapshot()).isEqualTo(10000L);
         assertThat(transactionDto.getAmount()).isEqualTo(200L);
@@ -287,8 +289,8 @@ class TransactionServiceTest {
                 .build();
         Transaction transaction = Transaction.builder()
                 .account(account)
-                .transactionType(TransactionType.USE)
-                .transactionResultType(TransactionResultType.S)
+                .transactionType(USE)
+                .transactionResultType(S)
                 .transactionId("transactionId")
                 .transactedAt(LocalDateTime.now())
                 .amount(200L)
@@ -320,8 +322,8 @@ class TransactionServiceTest {
                 .build();
         Transaction transaction = Transaction.builder()
                 .account(account)
-                .transactionType(TransactionType.USE)
-                .transactionResultType(TransactionResultType.S)
+                .transactionType(USE)
+                .transactionResultType(S)
                 .transactionId("transactionId")
                 .transactedAt(LocalDateTime.now())
                 .amount(200L + 1000L)
@@ -353,8 +355,8 @@ class TransactionServiceTest {
                 .build();
         Transaction transaction = Transaction.builder()
                 .account(account)
-                .transactionType(TransactionType.USE)
-                .transactionResultType(TransactionResultType.S)
+                .transactionType(USE)
+                .transactionResultType(S)
                 .transactionId("transactionId")
                 .transactedAt(LocalDateTime.now().minusYears(1).minusDays(1))
                 .amount(200L)
@@ -368,6 +370,51 @@ class TransactionServiceTest {
         assertThatThrownBy(() -> transactionService.cancelBalance("transactionId", "1234567890", 200L))
                 .isInstanceOf(AccountException.class)
                 .hasFieldOrPropertyWithValue("errorCode", ErrorCode.TOO_OLD_ORDER_TO_CANCEL);
+        //then
+
+    }
+
+    @Test
+    void successQueryTransaction() {
+        //given
+        AccountUser user = AccountUser.builder().id(12L).name("joo").build();
+        Account account = Account.builder()
+                .id(1L)
+                .accountUser(user)
+                .accountStatus(AccountStatus.IN_USE)
+                .accountNumber("1000000012")
+                .balance(10000L)
+                .build();
+        Transaction transaction = Transaction.builder()
+                .account(account)
+                .transactionType(USE)
+                .transactionResultType(S)
+                .transactionId("transactionId")
+                .transactedAt(LocalDateTime.now().minusYears(1).minusDays(1))
+                .amount(200L)
+                .balanceSnapshot(9000L)
+                .build();
+        given(transactionRepository.findByTransactionId(anyString()))
+                .willReturn(Optional.of(transaction));
+        //when
+        TransactionDto transactionDto = transactionService.queryTransaction("transactionId");
+        //then
+        assertThat(transactionDto.getTransactionType()).isEqualTo(USE);
+        assertThat(transactionDto.getTransactionResultType()).isEqualTo(S);
+        assertThat(transactionDto.getAmount()).isEqualTo(200L);
+        assertThat(transactionDto.getTransactionId()).isEqualTo("transactionId");
+    }
+
+    @Test
+    @DisplayName("해당 거래 없음 - 잔액 사용 취소 실패")
+    void queryTransaction_TransactionNotFound() {
+        //given
+        given(transactionRepository.findByTransactionId(anyString()))
+                .willReturn(Optional.empty());
+        //when
+        assertThatThrownBy(() -> transactionService.queryTransaction("transactionId"))
+                .isInstanceOf(AccountException.class)
+                .hasFieldOrPropertyWithValue("errorCode", ErrorCode.TRANSACTION_NOT_FOUND);
         //then
 
     }
