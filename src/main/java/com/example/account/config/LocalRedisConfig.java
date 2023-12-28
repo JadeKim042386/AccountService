@@ -1,30 +1,30 @@
 package com.example.account.config;
 
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.autoconfigure.cache.CacheProperties;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.data.redis.connection.RedisConnectionFactory;
-import org.springframework.data.redis.connection.lettuce.LettuceConnectionFactory;
-import org.springframework.data.redis.core.RedisTemplate;
+import redis.embedded.RedisServer;
+
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.IOException;
 
 @Configuration
 public class LocalRedisConfig {
-    @Value("${spring.redis.host}")
-    private String host;
-
     @Value("${spring.redis.port}")
-    private Integer port;
+    private int redisPort;
 
-    @Bean
-    public RedisConnectionFactory redisConnectionFactory() {
-        return new LettuceConnectionFactory(host, port);
+    private RedisServer redisServer;
+
+    @PostConstruct
+    public void startRedis() throws IOException {
+        redisServer = new RedisServer(redisPort);
+        redisServer.start();
     }
 
-    @Bean
-    public RedisTemplate<String, Object> redisTemplate() {
-        RedisTemplate<String, Object> redisTemplate = new RedisTemplate<>();
-        redisTemplate.setConnectionFactory(redisConnectionFactory());
-        return redisTemplate;
+    @PreDestroy
+    public void stopRedis() throws IOException {
+        if (redisServer != null) {
+            redisServer.stop();
+        }
     }
 }
