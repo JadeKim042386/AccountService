@@ -1,5 +1,7 @@
 package com.example.account.dto;
 
+import com.example.account.aop.AccountLock;
+import com.example.account.aop.AccountLockIdInterface;
 import com.example.account.type.TransactionResultType;
 import lombok.*;
 
@@ -10,7 +12,7 @@ public class UseBalance {
     @Getter
     @Setter
     @AllArgsConstructor
-    public static class Request {
+    public static class Request implements AccountLockIdInterface {
         @NotNull
         @Min(1)
         private Long userId;
@@ -33,6 +35,7 @@ public class UseBalance {
         private TransactionResultType transactionResult;
         private String transactionId;
         private Long amount;
+        private Long balanceSnapshot;
         private LocalDateTime transactedAt;
         public static Response from(TransactionDto dto) {
             return Response.builder()
@@ -40,6 +43,7 @@ public class UseBalance {
                     .transactionResult(dto.getTransactionResultType())
                     .transactionId(dto.getTransactionId())
                     .amount(dto.getAmount())
+                    .balanceSnapshot(dto.getBalanceSnapshot())
                     .transactedAt(dto.getTransactedAt())
                     .build();
         }

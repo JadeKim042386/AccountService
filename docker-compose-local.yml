@@ -1,0 +1,10 @@
+version: "3.8"
+services:
+  account-service-redis:
+    container_name: account-service-redis
+    build:
+      dockerfile: Dockerfile
+      context: ./redis
+    image: jade0423786/redis
+    ports:
+      - "6379:6379"

@@ -46,7 +46,7 @@ class TransactionServiceTest {
     private TransactionService transactionService;
 
     @Test
-    void successUseBalance() {
+    void successUseBalance() throws InterruptedException {
         //given
         AccountUser user = AccountUser.builder().id(12L).name("joo").build();
         given(accountUserRepository.findById(anyLong()))
