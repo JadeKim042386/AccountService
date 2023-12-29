@@ -41,8 +41,7 @@ public class TransactionService {
     ) {
         AccountUser accountUser = accountUserRepository.findById(userId)
                 .orElseThrow(() -> new AccountException(ErrorCode.USER_NOT_FOUND));
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = getAccount(accountNumber);
         validateUseBalance(accountUser, account, amount);
         account.useBalance(amount);
         return TransactionDto.fromEntity(
@@ -64,8 +63,7 @@ public class TransactionService {
 
     @Transactional
     public void saveFailedUseTransaction(String accountNumber, Long amount) {
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = getAccount(accountNumber);
         saveAndGetTransaction(amount, account, F, USE);
     }
 
@@ -96,8 +94,7 @@ public class TransactionService {
     ) {
         Transaction transaction = transactionRepository.findByTransactionId(transactionId)
                 .orElseThrow(() -> new AccountException(ErrorCode.TRANSACTION_NOT_FOUND));
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = getAccount(accountNumber);
         validateCancelBalance(transaction, account, amount);
         account.cancelBalance(amount);
         return TransactionDto.fromEntity(
@@ -119,8 +116,7 @@ public class TransactionService {
 
     @Transactional
     public void saveFailedCancelTransaction(String accountNumber, Long amount) {
-        Account account = accountRepository.findByAccountNumber(accountNumber)
-                .orElseThrow(() -> new AccountException(ErrorCode.ACCOUNT_NOT_FOUND));
+        Account account = getAccount(accountNumber);
         saveAndGetTransaction(amount, account, F, CANCEL);
     }
 
@@ -129,5 +125,10 @@ public class TransactionService {
                 transactionRepository.findByTransactionId(transactionId)
                         .orElseThrow(() -> new AccountException(ErrorCode.TRANSACTION_NOT_FOUND))
         );
+    }
+
+    private Account getAccount(String accountNumber) {
+        return accountRepository.findByAccountNumber(accountNumber)
+                .orElseThrow(() -> new AccountException(ErrorCode.ACCOUNT_NOT_FOUND));
     }
 }
