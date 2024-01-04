@@ -3,11 +3,7 @@ package com.example.account.domain;
 import com.example.account.exception.AccountException;
 import com.example.account.type.AccountStatus;
 import com.example.account.type.ErrorCode;
-import com.fasterxml.jackson.databind.ser.Serializers;
 import lombok.*;
-import org.springframework.data.annotation.CreatedDate;
-import org.springframework.data.annotation.LastModifiedDate;
-import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
